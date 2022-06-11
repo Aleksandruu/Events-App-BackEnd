@@ -56,7 +56,7 @@ createConnection().then((connection) => {
 
   app.post("/registration", async function (req: Request, res: Response) {
     try {
-      await userRepository.create(req.body);
+      await userRepository.save(req.body);
       return res.send(true);
     } catch (error) {
       return res.status(500).send(false);
@@ -166,7 +166,7 @@ createConnection().then((connection) => {
 
     const event = await eventsRepository.findOneById(payload.eventId);
 
-    const ticket = await ticketsRepository.create({
+    const ticket = await ticketsRepository.save({
       ...payload,
       secretCode: uuidv4(),
       state: 0,
@@ -189,5 +189,5 @@ createConnection().then((connection) => {
     return res.send(results);
   });
 
-  app.listen(3000);
+  app.listen(3001);
 });

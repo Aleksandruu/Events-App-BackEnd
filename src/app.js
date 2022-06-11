@@ -131,7 +131,7 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, userRepository.create(req.body)];
+                        return [4 /*yield*/, userRepository.save(req.body)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/, res.send(true)];
@@ -294,7 +294,7 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         return [4 /*yield*/, eventsRepository.findOneById(payload.eventId)];
                     case 2:
                         event = _b.sent();
-                        return [4 /*yield*/, ticketsRepository.create(__assign(__assign({}, payload), { secretCode: (0, uuid_1.v4)(), state: 0, user: user, event: event }))];
+                        return [4 /*yield*/, ticketsRepository.save(__assign(__assign({}, payload), { secretCode: (0, uuid_1.v4)(), state: 0, user: user, event: event }))];
                     case 3:
                         ticket = _b.sent();
                         return [2 /*return*/, res.send(ticket)];
@@ -332,5 +332,5 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
             });
         });
     });
-    app.listen(3000);
+    app.listen(3001);
 });
