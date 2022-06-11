@@ -1,9 +1,17 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+} from "typeorm";
+import { User } from "./User";
+import { Event } from "./Event";
 
 @Entity()
 export class Ticket {
   @PrimaryGeneratedColumn()
-  userId: number;
+  id: number;
 
   @Column()
   eventId: string;
@@ -12,5 +20,13 @@ export class Ticket {
   secretCode: string;
 
   @Column()
-  State: number;
+  state: number;
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: User;
+
+  @OneToOne(() => Event)
+  @JoinColumn()
+  event: Event;
 }

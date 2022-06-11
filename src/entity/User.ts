@@ -1,19 +1,19 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Event } from "./Event";
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  mail: string;
+  @Column()
+  email: string;
 
-  @Column({ unique: true })
-  nume: string;
+  @Column()
+  name: string;
 
-  @Column({ unique: true })
-  parola: string;
+  @Column()
+  password: string;
 
-  @Column({ unique: true })
-  varsta: number;
+  @OneToMany(() => Event, (event) => event.user) events: Event[];
 }
