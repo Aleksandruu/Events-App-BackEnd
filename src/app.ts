@@ -8,6 +8,28 @@ import { v4 as uuidv4 } from "uuid";
 import cors = require("cors");
 
 // create typeorm connection
+const isAuthenticated = async (
+  email: string,
+  password: string,
+  userRepository,
+  res: Response
+) => {
+  const email1 = email;
+  const password1 = password;
+
+  const user = await userRepository
+    .createQueryBuilder("User")
+    .where("User.email = :email", { email: email })
+    .getOne();
+
+  if (!user) {
+    return res.status(401).send(false);
+  }
+
+  if (user.password !== password) {
+    return res.status(401).send(false);
+  }
+};
 createConnection().then((connection) => {
   // create and setup express app
   const app = express();
@@ -44,22 +66,12 @@ createConnection().then((connection) => {
   });
 
   app.post("/authentication", async function (req: Request, res: Response) {
-    const email = req.body.email;
-    const password = req.body.password;
-
-    const user = await userRepository
-      .createQueryBuilder("User")
-      .where("User.email = :email", { email: email })
-      .getOne();
-
-    if (!user) {
-      return res.status(401).send(false);
-    }
-
-    if (user.password !== password) {
-      return res.status(401).send(false);
-    }
-
+    await isAuthenticated(
+      req.body.email,
+      req.body.password,
+      userRepository,
+      res
+    );
     return res.send(true);
   });
 
