@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -77,9 +88,9 @@ var Ticket_1 = require("./entity/Ticket");
             });
         });
     });
-    app.post("/users", function (req, res) {
+    app.post("/registration", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var user, results, error_1;
+            var user, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, userRepository.create(req.body)];
@@ -90,15 +101,37 @@ var Ticket_1 = require("./entity/Ticket");
                         _a.trys.push([2, 4, , 5]);
                         return [4 /*yield*/, userRepository.save(user)];
                     case 3:
-                        results = _a.sent();
-                        return [2 /*return*/, res.send(results)];
+                        _a.sent();
+                        return [2 /*return*/, res.send(true)];
                     case 4:
                         error_1 = _a.sent();
-                        console.log(error_1);
-                        return [2 /*return*/, res.status(400).send({
-                                message: "duplicate error",
-                            })];
+                        return [2 /*return*/, res.status(500).send(false)];
                     case 5: return [2 /*return*/];
+                }
+            });
+        });
+    });
+    app.post("/authentication", function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var email, password, user;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        email = req.body.email;
+                        password = req.body.password;
+                        return [4 /*yield*/, userRepository
+                                .createQueryBuilder("User")
+                                .where("User.email = :email", { email: email })
+                                .getOne()];
+                    case 1:
+                        user = _a.sent();
+                        if (!user) {
+                            return [2 /*return*/, res.status(401).send(false)];
+                        }
+                        if (user.password !== password) {
+                            return [2 /*return*/, res.status(401).send(false)];
+                        }
+                        return [2 /*return*/, res.send(true)];
                 }
             });
         });
@@ -166,7 +199,7 @@ var Ticket_1 = require("./entity/Ticket");
             var event, results;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, eventsRepository.create(req.body)];
+                    case 0: return [4 /*yield*/, eventsRepository.create(__assign(__assign({}, req.body), { banner: "", category: 0, description: "", requirements: "", cost: 0 }))];
                     case 1:
                         event = _a.sent();
                         return [4 /*yield*/, eventsRepository.save(event)];
@@ -240,7 +273,9 @@ var Ticket_1 = require("./entity/Ticket");
             var ticket, results;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.create(req.body)];
+                    case 0: return [4 /*yield*/, ticketsRepository.create(__assign(__assign({}, req.body), { userId: 1, 
+                            // secretCode: uuidv4(),
+                            state: 0 }))];
                     case 1:
                         ticket = _a.sent();
                         return [4 /*yield*/, ticketsRepository.save(ticket)];

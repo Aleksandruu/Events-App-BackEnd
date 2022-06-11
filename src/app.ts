@@ -25,22 +25,34 @@ createConnection().then((connection) => {
     return res.send(results);
   });
 
-  app.post("/users", async function (req: Request, res: Response) {
-    const user = await userRepository.create({
-      ...req.body,
-      nume: "",
-      parola: "",
-      varsta: 0,
-    });
+  app.post("/registration", async function (req: Request, res: Response) {
+    const user = await userRepository.create(req.body);
     try {
-      const results = await userRepository.save(user);
-      return res.send(results);
+      await userRepository.save(user);
+      return res.send(true);
     } catch (error) {
-      console.log(error);
-      return res.status(400).send({
-        message: "duplicate error",
-      });
+      return res.status(500).send(false);
     }
+  });
+
+  app.post("/authentication", async function (req: Request, res: Response) {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const user = await userRepository
+      .createQueryBuilder("User")
+      .where("User.email = :email", { email: email })
+      .getOne();
+
+    if (!user) {
+      return res.status(401).send(false);
+    }
+
+    if (user.password !== password) {
+      return res.status(401).send(false);
+    }
+
+    return res.send(true);
   });
 
   app.put("/users/:id", async function (req: Request, res: Response) {
