@@ -5,17 +5,13 @@ import {useState} from "react";
 import {uploadImage} from './ImageUpload';
 import {init} from "./firebase-configuration";
 import {state} from "./AuthenticationFacebook"
-import {ContactUs} from "./MailSender";
-
 function App() {
 var logged;
 init();
 const provider=new FacebookAuthProvider();
 const auth= getAuth(init());
-
 const handleclick=async ()=>{
      await  SocialMediaProvider( provider);
-     // await(logged.getIdToken(true));
      return console.log(logged);}
 const [imageUpload,setImageUpload]= useState(null);
 const handlephotos= async () =>{
@@ -37,10 +33,6 @@ else{
          <div>
              <input type="file" onChange={(event)=>{setImageUpload(event.target.files)}}/>
              <button onClick={handlephotos}>UploadPhoto</button>
-             <ContactUs>
-
-             </ContactUs>
-
          </div>
      </div>
 

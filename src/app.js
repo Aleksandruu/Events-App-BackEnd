@@ -59,10 +59,13 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express = require("express");
+var mailserver_1 = require("./config/mailserver");
+var qrgen_1 = require("./utils/qrgen");
 var typeorm_1 = require("typeorm");
 var User_1 = require("./entity/User");
 var Event_1 = require("./entity/Event");
 var Ticket_1 = require("./entity/Ticket");
+//create typeorm connection
 var uuid_1 = require("uuid");
 var cors = require("cors");
 // create typeorm connection
@@ -88,6 +91,7 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
 }); };
 (0, typeorm_1.createConnection)().then(function (connection) {
     // create and setup express app
+    require("dotenv").config();
     var app = express();
     app.use(express.json());
     app.use(cors({
@@ -328,6 +332,48 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                     case 1:
                         results = _a.sent();
                         return [2 /*return*/, res.send(results)];
+                }
+            });
+        });
+    });
+    app.post('/send', function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var url, qr, mail;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = "http://localhost:3000/userToken";
+                        return [4 /*yield*/, ((0, qrgen_1.generateQR)(url))];
+                    case 1:
+                        qr = _a.sent();
+                        qr = qr.replace(/^data:image\/(png|jpg);base64,/, "");
+                        mail = {
+                            from: 'jdasjdsal',
+                            to: 'stefan.rudareanu@student.upt.ro',
+                            subject: 'Event attendance pass',
+                            attachments: [{
+                                    filename: 'Ticket.jpg',
+                                    content: qr,
+                                    encoding: 'base64'
+                                }],
+                            text: 'Send email'
+                        };
+                        return [4 /*yield*/, mailserver_1.transporter.sendMail(mail, function (err, data) {
+                                if (err) {
+                                    res.send({
+                                        status: 'fail',
+                                        error: err
+                                    });
+                                }
+                                else {
+                                    res.json({
+                                        status: 'success'
+                                    });
+                                }
+                            })];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });
