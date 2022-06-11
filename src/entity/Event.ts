@@ -13,6 +13,9 @@ export class Event {
   category: number;
 
   @Column()
+  owner: string;
+
+  @Column()
   description: string;
 
   @Column()

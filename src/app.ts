@@ -108,6 +108,7 @@ createConnection().then((connection) => {
     try {
       const event = await eventsRepository.save({
         ...payload,
+        owner: email,
         user,
         state: 0,
       });

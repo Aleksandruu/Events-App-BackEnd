@@ -213,7 +213,7 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         _d.label = 2;
                     case 2:
                         _d.trys.push([2, 7, , 8]);
-                        return [4 /*yield*/, eventsRepository.save(__assign(__assign({}, payload), { user: user, state: 0 }))];
+                        return [4 /*yield*/, eventsRepository.save(__assign(__assign({}, payload), { owner: email, user: user, state: 0 }))];
                     case 3:
                         event_1 = _d.sent();
                         if (!payload.banner) return [3 /*break*/, 6];
@@ -332,5 +332,5 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
             });
         });
     });
-    app.listen(3001);
+    app.listen(3000);
 });

@@ -30,6 +30,10 @@ var Event = /** @class */ (function () {
     __decorate([
         (0, typeorm_1.Column)(),
         __metadata("design:type", String)
+    ], Event.prototype, "owner", void 0);
+    __decorate([
+        (0, typeorm_1.Column)(),
+        __metadata("design:type", String)
     ], Event.prototype, "description", void 0);
     __decorate([
         (0, typeorm_1.Column)(),
