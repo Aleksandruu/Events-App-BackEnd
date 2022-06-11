@@ -52,11 +52,16 @@ var typeorm_1 = require("typeorm");
 var User_1 = require("./entity/User");
 var Event_1 = require("./entity/Event");
 var Ticket_1 = require("./entity/Ticket");
+var uuid_1 = require("uuid");
+var cors = require("cors");
 // create typeorm connection
 (0, typeorm_1.createConnection)().then(function (connection) {
     // create and setup express app
     var app = express();
     app.use(express.json());
+    app.use(cors({
+        origin: "*",
+    }));
     var userRepository = connection.getRepository(User_1.User);
     var eventsRepository = connection.getRepository(Event_1.Event);
     var ticketsRepository = connection.getRepository(Ticket_1.Ticket);
@@ -273,9 +278,7 @@ var Ticket_1 = require("./entity/Ticket");
             var ticket, results;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.create(__assign(__assign({}, req.body), { userId: 1, 
-                            // secretCode: uuidv4(),
-                            state: 0 }))];
+                    case 0: return [4 /*yield*/, ticketsRepository.create(__assign(__assign({}, req.body), { userId: 1, secretCode: (0, uuid_1.v4)(), state: 0 }))];
                     case 1:
                         ticket = _a.sent();
                         return [4 /*yield*/, ticketsRepository.save(ticket)];

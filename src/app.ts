@@ -5,11 +5,19 @@ import { User } from "./entity/User";
 import { Event } from "./entity/Event";
 import { Ticket } from "./entity/Ticket";
 import { v4 as uuidv4 } from "uuid";
+import cors = require("cors");
+
 // create typeorm connection
 createConnection().then((connection) => {
   // create and setup express app
   const app = express();
   app.use(express.json());
+  app.use(
+    cors({
+      origin: "*",
+    })
+  );
+
   const userRepository = connection.getRepository(User);
   const eventsRepository = connection.getRepository(Event);
   const ticketsRepository = connection.getRepository(Ticket);
