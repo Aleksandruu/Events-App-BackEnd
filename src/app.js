@@ -164,13 +164,39 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     });
     app.get("/events/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var results;
+            var event, tickets, updatedTickets, entityManager, _i, tickets_1, ticket, response, user;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, eventsRepository.findOneById(req.params.id)];
                     case 1:
-                        results = _a.sent();
-                        return [2 /*return*/, res.send(results)];
+                        event = _a.sent();
+                        return [4 /*yield*/, ticketsRepository
+                                .createQueryBuilder("Ticket")
+                                .where("Ticket.eventId = :eventId", { eventId: event.id })
+                                .getMany()];
+                    case 2:
+                        tickets = _a.sent();
+                        updatedTickets = [];
+                        entityManager = (0, typeorm_1.getManager)();
+                        _i = 0, tickets_1 = tickets;
+                        _a.label = 3;
+                    case 3:
+                        if (!(_i < tickets_1.length)) return [3 /*break*/, 7];
+                        ticket = tickets_1[_i];
+                        return [4 /*yield*/, entityManager.query("SELECT t.userId FROM ticket as t WHERE t.id = ?", [ticket.id])];
+                    case 4:
+                        response = _a.sent();
+                        return [4 /*yield*/, userRepository.findOneById(response[0].userId)];
+                    case 5:
+                        user = _a.sent();
+                        updatedTickets.push(__assign(__assign({}, ticket), { name: user.name }));
+                        _a.label = 6;
+                    case 6:
+                        _i++;
+                        return [3 /*break*/, 3];
+                    case 7:
+                        console.log(JSON.stringify(updatedTickets));
+                        return [2 /*return*/, res.send(__assign(__assign({}, event), { updatedTickets: updatedTickets }))];
                 }
             });
         });

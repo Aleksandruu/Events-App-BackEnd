@@ -89,8 +89,35 @@ createConnection().then((connection) => {
   });
 
   app.get("/events/:id", async function (req: Request, res: Response) {
-    const results = await eventsRepository.findOneById(req.params.id);
-    return res.send(results);
+    const event = await eventsRepository.findOneById(req.params.id);
+
+    // const entityManager = getManager();
+    // const tickets = await entityManager.query(
+    //   `SELECT t FROM ticket as t WHERE t.eventId = ?`,
+    //   [event.id]
+    // );
+    // console.log(JSON.stringify(tickets));
+
+    const tickets = await ticketsRepository
+      .createQueryBuilder("Ticket")
+      .where("Ticket.eventId = :eventId", { eventId: event.id })
+      .getMany();
+
+    const updatedTickets = [];
+    const entityManager = getManager();
+
+    for (const ticket of tickets) {
+      const response = await entityManager.query(
+        `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
+        [ticket.id]
+      );
+      const user = await userRepository.findOneById(response[0].userId);
+      updatedTickets.push({ ...ticket, name: user.name });
+    }
+
+    console.log(JSON.stringify(updatedTickets));
+
+    return res.send({ ...event, tickets: updatedTickets });
   });
 
   app.post("/events", async function (req: Request, res: Response) {
