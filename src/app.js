@@ -97,33 +97,14 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     var eventsRepository = connection.getRepository(Event_1.Event);
     var ticketsRepository = connection.getRepository(Ticket_1.Ticket);
     // register routes
-    app.get("/users", function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var users;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, userRepository.find()];
-                    case 1:
-                        users = _a.sent();
-                        res.json(users);
-                        return [2 /*return*/];
-                }
-            });
-        });
-    });
-    app.get("/users/:id", function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var results;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, userRepository.findOneById(req.params.id)];
-                    case 1:
-                        results = _a.sent();
-                        return [2 /*return*/, res.send(results)];
-                }
-            });
-        });
-    });
+    // app.get("/users", async function (req: Request, res: Response) {
+    //   const users = await userRepository.find();
+    //   res.json(users);
+    // });
+    // app.get("/users/:id", async function (req: Request, res: Response) {
+    //   const results = await userRepository.findOneById(req.params.id);
+    //   return res.send(results);
+    // });
     app.post("/registration", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var error_1;
@@ -271,6 +252,37 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                     case 1:
                         results = _a.sent();
                         return [2 /*return*/, res.send(results)];
+                }
+            });
+        });
+    });
+    app.patch("/tickets/:id", function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var newState, ticket, updatedTicket, entityManager, response, userId, user, qrLink, userEmail;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        newState = req.body.state;
+                        return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
+                    case 1:
+                        ticket = _a.sent();
+                        return [4 /*yield*/, ticketsRepository.save(__assign(__assign({}, ticket), { state: newState }))];
+                    case 2:
+                        updatedTicket = _a.sent();
+                        entityManager = (0, typeorm_1.getManager)();
+                        return [4 /*yield*/, entityManager.query("SELECT t.userId FROM ticket as t WHERE t.id = ?", [ticket.id])];
+                    case 3:
+                        response = _a.sent();
+                        userId = response[0].userId;
+                        if (!(newState === 1)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, userRepository.findOneById(userId)];
+                    case 4:
+                        user = _a.sent();
+                        qrLink = "http://localhost:3005/validare-bilet/".concat(ticket.secretCode);
+                        userEmail = user.email;
+                        console.log("Send email with QR code: ".concat(qrLink, " to email: ").concat(userEmail));
+                        _a.label = 5;
+                    case 5: return [2 /*return*/, res.send(updatedTicket)];
                 }
             });
         });

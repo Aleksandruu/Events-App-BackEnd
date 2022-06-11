@@ -1,6 +1,6 @@
 import * as express from "express";
 import { Request, Response } from "express";
-import { createConnection } from "typeorm";
+import { createConnection, getManager } from "typeorm";
 import { User } from "./entity/User";
 import { Event } from "./entity/Event";
 import { Ticket } from "./entity/Ticket";
@@ -44,15 +44,15 @@ createConnection().then((connection) => {
   const ticketsRepository = connection.getRepository(Ticket);
   // register routes
 
-  app.get("/users", async function (req: Request, res: Response) {
-    const users = await userRepository.find();
-    res.json(users);
-  });
+  // app.get("/users", async function (req: Request, res: Response) {
+  //   const users = await userRepository.find();
+  //   res.json(users);
+  // });
 
-  app.get("/users/:id", async function (req: Request, res: Response) {
-    const results = await userRepository.findOneById(req.params.id);
-    return res.send(results);
-  });
+  // app.get("/users/:id", async function (req: Request, res: Response) {
+  //   const results = await userRepository.findOneById(req.params.id);
+  //   return res.send(results);
+  // });
 
   app.post("/registration", async function (req: Request, res: Response) {
     try {
@@ -150,6 +150,32 @@ createConnection().then((connection) => {
   app.get("/tickets/:id", async function (req: Request, res: Response) {
     const results = await ticketsRepository.findOneById(req.params.id);
     return res.send(results);
+  });
+
+  app.patch("/tickets/:id", async function (req: Request, res: Response) {
+    const newState = req.body.state;
+
+    const ticket = await ticketsRepository.findOneById(req.params.id);
+    const updatedTicket = await ticketsRepository.save({
+      ...ticket,
+      state: newState,
+    });
+
+    const entityManager = getManager();
+    const response = await entityManager.query(
+      `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
+      [ticket.id]
+    );
+    const userId = response[0].userId;
+
+    if (newState === 1) {
+      const user = await userRepository.findOneById(userId);
+      const qrLink = `http://localhost:3005/validare-bilet/${ticket.secretCode}`;
+      const userEmail = user.email;
+      console.log(`Send email with QR code: ${qrLink} to email: ${userEmail}`);
+    }
+
+    return res.send(updatedTicket);
   });
 
   app.post("/tickets", async function (req: Request, res: Response) {
