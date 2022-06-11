@@ -11,25 +11,24 @@ import cors = require("cors");
 const isAuthenticated = async (
   email: string,
   password: string,
-  userRepository,
-  res: Response
+  userRepository
 ) => {
-  const email1 = email;
-  const password1 = password;
-
   const user = await userRepository
     .createQueryBuilder("User")
     .where("User.email = :email", { email: email })
     .getOne();
 
   if (!user) {
-    return res.status(401).send(false);
+    return false;
   }
 
   if (user.password !== password) {
-    return res.status(401).send(false);
+    return false;
   }
+
+  return true;
 };
+
 createConnection().then((connection) => {
   // create and setup express app
   const app = express();
@@ -56,9 +55,8 @@ createConnection().then((connection) => {
   });
 
   app.post("/registration", async function (req: Request, res: Response) {
-    const user = await userRepository.create(req.body);
     try {
-      await userRepository.save(user);
+      await userRepository.create(req.body);
       return res.send(true);
     } catch (error) {
       return res.status(500).send(false);
@@ -66,27 +64,25 @@ createConnection().then((connection) => {
   });
 
   app.post("/authentication", async function (req: Request, res: Response) {
-    await isAuthenticated(
-      req.body.email,
-      req.body.password,
-      userRepository,
-      res
+    return res.send(
+      await isAuthenticated(req.body.email, req.body.password, userRepository)
     );
-    return res.send(true);
   });
 
-  app.put("/users/:id", async function (req: Request, res: Response) {
-    const user = await userRepository.findOneById(req.params.id);
-    userRepository.merge(user, req.body);
-    const results = await userRepository.save(user);
-    return res.send(results);
-  });
+  // app.put("/users/:id", async function (req: Request, res: Response) {
+  //   const user = await userRepository.findOneById(req.params.id);
+  //   userRepository.merge(user, req.body);
+  //   const results = await userRepository.save(user);
+  //   return res.send(results);
+  // });
 
-  app.delete("/users/:id", async function (req: Request, res: Response) {
-    const results = await userRepository.delete(req.params.id);
-    return res.send(results);
-  });
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // app.delete("/users/:id", async function (req: Request, res: Response) {
+  //   const results = await userRepository.delete(req.params.id);
+  //   return res.send(results);
+  // });
+
+  // Events
+
   app.get("/events", async function (req: Request, res: Response) {
     const events = await eventsRepository.find();
     res.json(events);
@@ -98,29 +94,51 @@ createConnection().then((connection) => {
   });
 
   app.post("/events", async function (req: Request, res: Response) {
-    const event = await eventsRepository.create({
-      ...req.body,
-      banner: "",
-      category: 0,
-      description: "",
-      requirements: "",
-      cost: 0,
-    });
-    const results = await eventsRepository.save(event);
-    return res.send(results);
+    const { email, password, ...payload } = req.body;
+
+    if (!isAuthenticated(email, password, userRepository)) {
+      return res.status(401).send({ message: "Nu esti autentificat!" });
+    }
+
+    const user = await userRepository
+      .createQueryBuilder("User")
+      .where("User.email = :email", { email: email })
+      .getOne();
+
+    try {
+      const event = await eventsRepository.save({
+        ...payload,
+        user,
+      });
+
+      if (payload.banner) {
+        await eventsRepository.update(event.id, {
+          banner: `${event.id}/${payload.banner}`,
+        });
+
+        return res.send(await eventsRepository.findOneById(event.id));
+      }
+
+      return res.send(event);
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(400)
+        .send({ message: "eroare la adaugarea evenimentului" });
+    }
   });
 
-  app.put("/event/:id", async function (req: Request, res: Response) {
-    const event = await eventsRepository.findOneById(req.params.id);
-    eventsRepository.merge(event, req.body);
-    const results = await eventsRepository.save(event);
-    return res.send(results);
-  });
+  // app.put("/event/:id", async function (req: Request, res: Response) {
+  //   const event = await eventsRepository.findOneById(req.params.id);
+  //   eventsRepository.merge(event, req.body);
+  //   const results = await eventsRepository.save(event);
+  //   return res.send(results);
+  // });
 
-  app.delete("/events/:id", async function (req: Request, res: Response) {
-    const results = await eventsRepository.delete(req.params.id);
-    return res.send(results);
-  });
+  // app.delete("/events/:id", async function (req: Request, res: Response) {
+  //   const results = await eventsRepository.delete(req.params.id);
+  //   return res.send(results);
+  // });
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   app.get("/tickets", async function (req: Request, res: Response) {
     const ticket = await ticketsRepository.find();
@@ -136,7 +154,6 @@ createConnection().then((connection) => {
     //TODO get user id from token
     const ticket = await ticketsRepository.create({
       ...req.body,
-      userId: 1,
       secretCode: uuidv4(),
       state: 0,
     });

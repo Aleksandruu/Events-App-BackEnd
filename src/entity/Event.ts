@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import { User } from "./User";
 
 @Entity()
 export class Event {
@@ -19,4 +20,6 @@ export class Event {
 
   @Column()
   cost: string;
+
+  @ManyToOne(() => User, (user) => user.events) user: User;
 }

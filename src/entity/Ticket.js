@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticket = void 0;
 var typeorm_1 = require("typeorm");
+var User_1 = require("./User");
+var Event_1 = require("./Event");
 var Ticket = /** @class */ (function () {
     function Ticket() {
     }
@@ -30,6 +32,16 @@ var Ticket = /** @class */ (function () {
         (0, typeorm_1.Column)(),
         __metadata("design:type", Number)
     ], Ticket.prototype, "State", void 0);
+    __decorate([
+        (0, typeorm_1.OneToOne)(function () { return User_1.User; }),
+        (0, typeorm_1.JoinColumn)(),
+        __metadata("design:type", User_1.User)
+    ], Ticket.prototype, "user", void 0);
+    __decorate([
+        (0, typeorm_1.OneToOne)(function () { return Event_1.Event; }),
+        (0, typeorm_1.JoinColumn)(),
+        __metadata("design:type", Event_1.Event)
+    ], Ticket.prototype, "event", void 0);
     Ticket = __decorate([
         (0, typeorm_1.Entity)()
     ], Ticket);

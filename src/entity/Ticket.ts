@@ -1,4 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+} from "typeorm";
+import { User } from "./User";
+import { Event } from "./Event";
 
 @Entity()
 export class Ticket {
@@ -13,4 +21,12 @@ export class Ticket {
 
   @Column()
   State: number;
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: User;
+
+  @OneToOne(() => Event)
+  @JoinColumn()
+  event: Event;
 }
