@@ -213,7 +213,7 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         _d.label = 2;
                     case 2:
                         _d.trys.push([2, 7, , 8]);
-                        return [4 /*yield*/, eventsRepository.save(__assign(__assign({}, payload), { user: user }))];
+                        return [4 /*yield*/, eventsRepository.save(__assign(__assign({}, payload), { user: user, state: 0 }))];
                     case 3:
                         event_1 = _d.sent();
                         if (!payload.banner) return [3 /*break*/, 6];
@@ -277,16 +277,27 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     });
     app.post("/tickets", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var ticket, results;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.create(__assign(__assign({}, req.body), { secretCode: (0, uuid_1.v4)(), state: 0 }))];
+            var _a, email, password, payload, user, event, ticket;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = req.body, email = _a.email, password = _a.password, payload = __rest(_a, ["email", "password"]);
+                        if (!isAuthenticated(email, password, userRepository)) {
+                            return [2 /*return*/, res.status(401).send({ message: "Nu esti autentificat!" })];
+                        }
+                        return [4 /*yield*/, userRepository
+                                .createQueryBuilder("User")
+                                .where("User.email = :email", { email: email })
+                                .getOne()];
                     case 1:
-                        ticket = _a.sent();
-                        return [4 /*yield*/, ticketsRepository.save(ticket)];
+                        user = _b.sent();
+                        return [4 /*yield*/, eventsRepository.findOneById(payload.eventId)];
                     case 2:
-                        results = _a.sent();
-                        return [2 /*return*/, res.send(results)];
+                        event = _b.sent();
+                        return [4 /*yield*/, ticketsRepository.create(__assign(__assign({}, payload), { secretCode: (0, uuid_1.v4)(), state: 0, user: user, event: event }))];
+                    case 3:
+                        ticket = _b.sent();
+                        return [2 /*return*/, res.send(ticket)];
                 }
             });
         });

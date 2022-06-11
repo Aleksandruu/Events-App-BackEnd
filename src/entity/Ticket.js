@@ -19,7 +19,7 @@ var Ticket = /** @class */ (function () {
     __decorate([
         (0, typeorm_1.PrimaryGeneratedColumn)(),
         __metadata("design:type", Number)
-    ], Ticket.prototype, "userId", void 0);
+    ], Ticket.prototype, "id", void 0);
     __decorate([
         (0, typeorm_1.Column)(),
         __metadata("design:type", String)
@@ -31,7 +31,7 @@ var Ticket = /** @class */ (function () {
     __decorate([
         (0, typeorm_1.Column)(),
         __metadata("design:type", Number)
-    ], Ticket.prototype, "State", void 0);
+    ], Ticket.prototype, "state", void 0);
     __decorate([
         (0, typeorm_1.OneToOne)(function () { return User_1.User; }),
         (0, typeorm_1.JoinColumn)(),

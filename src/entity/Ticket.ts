@@ -11,7 +11,7 @@ import { Event } from "./Event";
 @Entity()
 export class Ticket {
   @PrimaryGeneratedColumn()
-  userId: number;
+  id: number;
 
   @Column()
   eventId: string;
@@ -20,7 +20,7 @@ export class Ticket {
   secretCode: string;
 
   @Column()
-  State: number;
+  state: number;
 
   @OneToOne(() => User)
   @JoinColumn()

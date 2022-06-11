@@ -109,6 +109,7 @@ createConnection().then((connection) => {
       const event = await eventsRepository.save({
         ...payload,
         user,
+        state: 0,
       });
 
       if (payload.banner) {
@@ -152,13 +153,28 @@ createConnection().then((connection) => {
 
   app.post("/tickets", async function (req: Request, res: Response) {
     //TODO get user id from token
+    const { email, password, ...payload } = req.body;
+
+    if (!isAuthenticated(email, password, userRepository)) {
+      return res.status(401).send({ message: "Nu esti autentificat!" });
+    }
+
+    const user = await userRepository
+      .createQueryBuilder("User")
+      .where("User.email = :email", { email: email })
+      .getOne();
+
+    const event = await eventsRepository.findOneById(payload.eventId);
+
     const ticket = await ticketsRepository.create({
-      ...req.body,
+      ...payload,
       secretCode: uuidv4(),
       state: 0,
+      user,
+      event,
     });
-    const results = await ticketsRepository.save(ticket);
-    return res.send(results);
+
+    return res.send(ticket);
   });
 
   app.put("/tickets/:id", async function (req: Request, res: Response) {
