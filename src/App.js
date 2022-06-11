@@ -5,6 +5,8 @@ import {useState} from "react";
 import {uploadImage} from './ImageUpload';
 import {init} from "./firebase-configuration";
 import {state} from "./AuthenticationFacebook"
+import {ContactUs} from "./MailSender";
+
 function App() {
 var logged;
 init();
@@ -35,6 +37,9 @@ else{
          <div>
              <input type="file" onChange={(event)=>{setImageUpload(event.target.files)}}/>
              <button onClick={handlephotos}>UploadPhoto</button>
+             <ContactUs>
+
+             </ContactUs>
 
          </div>
      </div>
