@@ -196,7 +196,7 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         return [3 /*break*/, 3];
                     case 7:
                         console.log(JSON.stringify(updatedTickets));
-                        return [2 /*return*/, res.send(__assign(__assign({}, event), { updatedTickets: updatedTickets }))];
+                        return [2 /*return*/, res.send(__assign(__assign({}, event), { tickets: updatedTickets }))];
                 }
             });
         });
