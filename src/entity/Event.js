@@ -20,7 +20,7 @@ var Event = /** @class */ (function () {
         __metadata("design:type", Number)
     ], Event.prototype, "id", void 0);
     __decorate([
-        (0, typeorm_1.Column)(),
+        (0, typeorm_1.Column)({ default: "" }),
         __metadata("design:type", String)
     ], Event.prototype, "banner", void 0);
     __decorate([

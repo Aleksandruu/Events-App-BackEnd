@@ -6,7 +6,7 @@ export class Event {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ default: "" })
   banner: string;
 
   @Column()
