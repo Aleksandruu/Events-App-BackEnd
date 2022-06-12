@@ -7,10 +7,6 @@ import { Ticket } from "./entity/Ticket";
 import { v4 as uuidv4 } from "uuid";
 import cors = require("cors");
 
-process.on("uncaughtException", (err) => {
-  console.log(err.message);
-});
-
 // create typeorm connection
 const isAuthenticated = async (
   email: string,
@@ -68,9 +64,13 @@ createConnection().then((connection) => {
   });
 
   app.post("/authentication", async function (req: Request, res: Response) {
-    return res.send(
-      await isAuthenticated(req.body.email, req.body.password, userRepository)
-    );
+    try {
+      return res.send(
+        await isAuthenticated(req.body.email, req.body.password, userRepository)
+      );
+    } catch (error) {
+      return res.status(500).send(false);
+    }
   });
 
   // app.put("/users/:id", async function (req: Request, res: Response) {
@@ -88,76 +88,88 @@ createConnection().then((connection) => {
   // Events
 
   app.get("/events", async function (req: Request, res: Response) {
-    const events = await eventsRepository.find();
-    res.json(events);
+    try {
+      const events = await eventsRepository.find();
+      res.json(events);
+    } catch (error) {
+      return res.status(500).send(false);
+    }
   });
 
   app.get("/events/:id", async function (req: Request, res: Response) {
-    const event = await eventsRepository.findOneById(req.params.id);
+    try {
+      const event = await eventsRepository.findOneById(req.params.id);
 
-    // const entityManager = getManager();
-    // const tickets = await entityManager.query(
-    //   `SELECT t FROM ticket as t WHERE t.eventId = ?`,
-    //   [event.id]
-    // );
-    // console.log(JSON.stringify(tickets));
+      // const entityManager = getManager();
+      // const tickets = await entityManager.query(
+      //   `SELECT t FROM ticket as t WHERE t.eventId = ?`,
+      //   [event.id]
+      // );
+      // console.log(JSON.stringify(tickets));
 
-    const tickets = await ticketsRepository
-      .createQueryBuilder("Ticket")
-      .where("Ticket.eventId = :eventId", { eventId: event.id })
-      .getMany();
+      const tickets = await ticketsRepository
+        .createQueryBuilder("Ticket")
+        .where("Ticket.eventId = :eventId", { eventId: event.id })
+        .getMany();
 
-    const updatedTickets = [];
-    const entityManager = getManager();
+      const updatedTickets = [];
+      const entityManager = getManager();
 
-    for (const ticket of tickets) {
-      const response = await entityManager.query(
-        `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
-        [ticket.id]
-      );
-      const user = await userRepository.findOneById(response[0].userId);
-      updatedTickets.push({ ...ticket, name: user.name });
+      for (const ticket of tickets) {
+        const response = await entityManager.query(
+          `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
+          [ticket.id]
+        );
+        const user = await userRepository.findOneById(response[0].userId);
+        updatedTickets.push({ ...ticket, name: user.name });
+      }
+
+      console.log(JSON.stringify(updatedTickets));
+
+      return res.send({ ...event, tickets: updatedTickets });
+    } catch (error) {
+      return res.status(500).send(false);
     }
-
-    console.log(JSON.stringify(updatedTickets));
-
-    return res.send({ ...event, tickets: updatedTickets });
   });
 
   app.post("/events", async function (req: Request, res: Response) {
-    const { email, password, ...payload } = req.body;
-
-    if (!isAuthenticated(email, password, userRepository)) {
-      return res.status(401).send({ message: "Nu esti autentificat!" });
-    }
-
-    const user = await userRepository
-      .createQueryBuilder("User")
-      .where("User.email = :email", { email: email })
-      .getOne();
-
     try {
-      const event = await eventsRepository.save({
-        ...payload,
-        owner: email,
-        user,
-        state: 0,
-      });
+      const { email, password, ...payload } = req.body;
 
-      if (payload.banner) {
-        await eventsRepository.update(event.id, {
-          banner: `${event.id}/${payload.banner}`,
-        });
-
-        return res.send(await eventsRepository.findOneById(event.id));
+      if (!isAuthenticated(email, password, userRepository)) {
+        return res.status(401).send({ message: "Nu esti autentificat!" });
       }
 
-      return res.send(event);
+      const user = await userRepository
+        .createQueryBuilder("User")
+        .where("User.email = :email", { email: email })
+        .getOne();
+
+      try {
+        const event = await eventsRepository.save({
+          ...payload,
+          owner: email,
+          user,
+          state: 0,
+        });
+
+        if (payload.banner) {
+          await eventsRepository.update(event.id, {
+            banner: `${event.id}/${payload.banner}`,
+          });
+
+          return res.send(await eventsRepository.findOneById(event.id));
+        }
+
+        return res.send(event);
+      } catch (error) {
+        console.log(error);
+        return res
+          .status(400)
+          .send({ message: "eroare la adaugarea evenimentului" });
+      }
     } catch (error) {
-      console.log(error);
-      return res
-        .status(400)
-        .send({ message: "eroare la adaugarea evenimentului" });
+      return res.status(500).send(false);
     }
   });
 
@@ -174,77 +186,103 @@ createConnection().then((connection) => {
   // });
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   app.get("/tickets", async function (req: Request, res: Response) {
-    const ticket = await ticketsRepository.find();
-    res.json(ticket);
+    try {
+      const ticket = await ticketsRepository.find();
+      res.json(ticket);
+    } catch (error) {
+      return res.status(500).send(false);
+    }
   });
 
   app.get("/tickets/:id", async function (req: Request, res: Response) {
-    const results = await ticketsRepository.findOneById(req.params.id);
-    return res.send(results);
+    try {
+      const results = await ticketsRepository.findOneById(req.params.id);
+      return res.send(results);
+    } catch (error) {
+      return res.status(500).send(false);
+    }
   });
 
   app.patch("/tickets/:id", async function (req: Request, res: Response) {
-    const newState = req.body.state;
+    try {
+      const newState = req.body.state;
 
-    const ticket = await ticketsRepository.findOneById(req.params.id);
-    const updatedTicket = await ticketsRepository.save({
-      ...ticket,
-      state: newState,
-    });
+      const ticket = await ticketsRepository.findOneById(req.params.id);
+      const updatedTicket = await ticketsRepository.save({
+        ...ticket,
+        state: newState,
+      });
 
-    const entityManager = getManager();
-    const response = await entityManager.query(
-      `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
-      [ticket.id]
-    );
-    const userId = response[0].userId;
+      const entityManager = getManager();
+      const response = await entityManager.query(
+        `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
+        [ticket.id]
+      );
+      const userId = response[0].userId;
 
-    if (newState === 1) {
-      const user = await userRepository.findOneById(userId);
-      const qrLink = `http://localhost:3005/validare-bilet/${ticket.secretCode}`;
-      const userEmail = user.email;
-      console.log(`Send email with QR code: ${qrLink} to email: ${userEmail}`);
+      if (newState === 1) {
+        const user = await userRepository.findOneById(userId);
+        const qrLink = `http://localhost:3005/validare-bilet/${ticket.secretCode}`;
+        const userEmail = user.email;
+        console.log(
+          `Send email with QR code: ${qrLink} to email: ${userEmail}`
+        );
+      }
+
+      return res.send(updatedTicket);
+    } catch (error) {
+      return res.status(500).send(false);
     }
-
-    return res.send(updatedTicket);
   });
 
   app.post("/tickets", async function (req: Request, res: Response) {
-    //TODO get user id from token
-    const { email, password, ...payload } = req.body;
+    try {
+      //TODO get user id from token
+      const { email, password, ...payload } = req.body;
 
-    if (!isAuthenticated(email, password, userRepository)) {
-      return res.status(401).send({ message: "Nu esti autentificat!" });
+      if (!isAuthenticated(email, password, userRepository)) {
+        return res.status(401).send({ message: "Nu esti autentificat!" });
+      }
+
+      const user = await userRepository
+        .createQueryBuilder("User")
+        .where("User.email = :email", { email: email })
+        .getOne();
+
+      const event = await eventsRepository.findOneById(payload.eventId);
+
+      const ticket = await ticketsRepository.save({
+        ...payload,
+        secretCode: uuidv4(),
+        state: 0,
+        user,
+        event,
+      });
+
+      return res.send(ticket);
+    } catch (error) {
+      return res.status(500).send(false);
     }
-
-    const user = await userRepository
-      .createQueryBuilder("User")
-      .where("User.email = :email", { email: email })
-      .getOne();
-
-    const event = await eventsRepository.findOneById(payload.eventId);
-
-    const ticket = await ticketsRepository.save({
-      ...payload,
-      secretCode: uuidv4(),
-      state: 0,
-      user,
-      event,
-    });
-
-    return res.send(ticket);
   });
 
   app.put("/tickets/:id", async function (req: Request, res: Response) {
-    const ticket = await ticketsRepository.findOneById(req.params.id);
-    ticketsRepository.merge(ticket, req.body);
-    const results = await ticketsRepository.save(ticket);
-    return res.send(results);
+    try {
+      const ticket = await ticketsRepository.findOneById(req.params.id);
+      ticketsRepository.merge(ticket, req.body);
+      const results = await ticketsRepository.save(ticket);
+      return res.send(results);
+    } catch (error) {
+      return res.status(500).send(false);
+    }
   });
 
   app.delete("/tickets/:id", async function (req: Request, res: Response) {
-    const results = await ticketsRepository.delete(req.params.id);
-    return res.send(results);
+    try {
+      const results = await ticketsRepository.delete(req.params.id);
+      return res.send(results);
+    } catch (error) {
+      return res.status(500).send(false);
+    }
   });
 
   app.listen(3001);

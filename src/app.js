@@ -65,9 +65,6 @@ var Event_1 = require("./entity/Event");
 var Ticket_1 = require("./entity/Ticket");
 var uuid_1 = require("uuid");
 var cors = require("cors");
-process.on("uncaughtException", function (err) {
-    console.log(err.message);
-});
 // create typeorm connection
 var isAuthenticated = function (email, password, userRepository) { return __awaiter(void 0, void 0, void 0, function () {
     var user;
@@ -129,13 +126,18 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     });
     app.post("/authentication", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b;
+            var _a, _b, error_2;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
+                        _c.trys.push([0, 2, , 3]);
                         _b = (_a = res).send;
                         return [4 /*yield*/, isAuthenticated(req.body.email, req.body.password, userRepository)];
                     case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    case 2:
+                        error_2 = _c.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
@@ -153,29 +155,37 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     // Events
     app.get("/events", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var events;
+            var events, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, eventsRepository.find()];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, eventsRepository.find()];
                     case 1:
                         events = _a.sent();
                         res.json(events);
-                        return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        error_3 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
     });
     app.get("/events/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var event, tickets, updatedTickets, entityManager, _i, tickets_1, ticket, response, user;
+            var event_1, tickets, updatedTickets, entityManager, _i, tickets_1, ticket, response, user, error_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, eventsRepository.findOneById(req.params.id)];
+                    case 0:
+                        _a.trys.push([0, 8, , 9]);
+                        return [4 /*yield*/, eventsRepository.findOneById(req.params.id)];
                     case 1:
-                        event = _a.sent();
+                        event_1 = _a.sent();
                         return [4 /*yield*/, ticketsRepository
                                 .createQueryBuilder("Ticket")
-                                .where("Ticket.eventId = :eventId", { eventId: event.id })
+                                .where("Ticket.eventId = :eventId", { eventId: event_1.id })
                                 .getMany()];
                     case 2:
                         tickets = _a.sent();
@@ -199,17 +209,22 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         return [3 /*break*/, 3];
                     case 7:
                         console.log(JSON.stringify(updatedTickets));
-                        return [2 /*return*/, res.send(__assign(__assign({}, event), { tickets: updatedTickets }))];
+                        return [2 /*return*/, res.send(__assign(__assign({}, event_1), { tickets: updatedTickets }))];
+                    case 8:
+                        error_4 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
     });
     app.post("/events", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, email, password, payload, user, event_1, _b, _c, error_2;
+            var _a, email, password, payload, user, event_2, _b, _c, error_5, error_6;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
+                        _d.trys.push([0, 9, , 10]);
                         _a = req.body, email = _a.email, password = _a.password, payload = __rest(_a, ["email", "password"]);
                         if (!isAuthenticated(email, password, userRepository)) {
                             return [2 /*return*/, res.status(401).send({ message: "Nu esti autentificat!" })];
@@ -225,24 +240,28 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         _d.trys.push([2, 7, , 8]);
                         return [4 /*yield*/, eventsRepository.save(__assign(__assign({}, payload), { owner: email, user: user, state: 0 }))];
                     case 3:
-                        event_1 = _d.sent();
+                        event_2 = _d.sent();
                         if (!payload.banner) return [3 /*break*/, 6];
-                        return [4 /*yield*/, eventsRepository.update(event_1.id, {
-                                banner: "".concat(event_1.id, "/").concat(payload.banner),
+                        return [4 /*yield*/, eventsRepository.update(event_2.id, {
+                                banner: "".concat(event_2.id, "/").concat(payload.banner),
                             })];
                     case 4:
                         _d.sent();
                         _c = (_b = res).send;
-                        return [4 /*yield*/, eventsRepository.findOneById(event_1.id)];
+                        return [4 /*yield*/, eventsRepository.findOneById(event_2.id)];
                     case 5: return [2 /*return*/, _c.apply(_b, [_d.sent()])];
-                    case 6: return [2 /*return*/, res.send(event_1)];
+                    case 6: return [2 /*return*/, res.send(event_2)];
                     case 7:
-                        error_2 = _d.sent();
-                        console.log(error_2);
+                        error_5 = _d.sent();
+                        console.log(error_5);
                         return [2 /*return*/, res
                                 .status(400)
                                 .send({ message: "eroare la adaugarea evenimentului" })];
-                    case 8: return [2 /*return*/];
+                    case 8: return [3 /*break*/, 10];
+                    case 9:
+                        error_6 = _d.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 10: return [2 /*return*/];
                 }
             });
         });
@@ -260,37 +279,50 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.get("/tickets", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var ticket;
+            var ticket, error_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.find()];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, ticketsRepository.find()];
                     case 1:
                         ticket = _a.sent();
                         res.json(ticket);
-                        return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        error_7 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
     });
     app.get("/tickets/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var results;
+            var results, error_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
                     case 1:
                         results = _a.sent();
                         return [2 /*return*/, res.send(results)];
+                    case 2:
+                        error_8 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
     });
     app.patch("/tickets/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var newState, ticket, updatedTicket, entityManager, response, userId, user, qrLink, userEmail;
+            var newState, ticket, updatedTicket, entityManager, response, userId, user, qrLink, userEmail, error_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        _a.trys.push([0, 6, , 7]);
                         newState = req.body.state;
                         return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
                     case 1:
@@ -312,16 +344,21 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         console.log("Send email with QR code: ".concat(qrLink, " to email: ").concat(userEmail));
                         _a.label = 5;
                     case 5: return [2 /*return*/, res.send(updatedTicket)];
+                    case 6:
+                        error_9 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
     });
     app.post("/tickets", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, email, password, payload, user, event, ticket;
+            var _a, email, password, payload, user, event_3, ticket, error_10;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        _b.trys.push([0, 4, , 5]);
                         _a = req.body, email = _a.email, password = _a.password, payload = __rest(_a, ["email", "password"]);
                         if (!isAuthenticated(email, password, userRepository)) {
                             return [2 /*return*/, res.status(401).send({ message: "Nu esti autentificat!" })];
@@ -334,21 +371,27 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         user = _b.sent();
                         return [4 /*yield*/, eventsRepository.findOneById(payload.eventId)];
                     case 2:
-                        event = _b.sent();
-                        return [4 /*yield*/, ticketsRepository.save(__assign(__assign({}, payload), { secretCode: (0, uuid_1.v4)(), state: 0, user: user, event: event }))];
+                        event_3 = _b.sent();
+                        return [4 /*yield*/, ticketsRepository.save(__assign(__assign({}, payload), { secretCode: (0, uuid_1.v4)(), state: 0, user: user, event: event_3 }))];
                     case 3:
                         ticket = _b.sent();
                         return [2 /*return*/, res.send(ticket)];
+                    case 4:
+                        error_10 = _b.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
     });
     app.put("/tickets/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var ticket, results;
+            var ticket, results, error_11;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
                     case 1:
                         ticket = _a.sent();
                         ticketsRepository.merge(ticket, req.body);
@@ -356,19 +399,29 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                     case 2:
                         results = _a.sent();
                         return [2 /*return*/, res.send(results)];
+                    case 3:
+                        error_11 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
     });
     app.delete("/tickets/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var results;
+            var results, error_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, ticketsRepository.delete(req.params.id)];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, ticketsRepository.delete(req.params.id)];
                     case 1:
                         results = _a.sent();
                         return [2 /*return*/, res.send(results)];
+                    case 2:
+                        error_12 = _a.sent();
+                        return [2 /*return*/, res.status(500).send(false)];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
