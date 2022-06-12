@@ -65,6 +65,8 @@ var Event_1 = require("./entity/Event");
 var Ticket_1 = require("./entity/Ticket");
 var uuid_1 = require("uuid");
 var cors = require("cors");
+var mailsender_1 = require("./utils/mailsender");
+var qrcode_1 = require("./config/qrcode");
 // create typeorm connection
 var isAuthenticated = function (email, password, userRepository) { return __awaiter(void 0, void 0, void 0, function () {
     var user;
@@ -318,11 +320,11 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
     });
     app.patch("/tickets/:id", function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var newState, ticket, updatedTicket, entityManager, response, userId, user, qrLink, userEmail, error_9;
+            var newState, ticket, updatedTicket, entityManager, response, userId, user, qrLink, userEmail, qr, mail, error_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 6, , 7]);
+                        _a.trys.push([0, 8, , 9]);
                         newState = req.body.state;
                         return [4 /*yield*/, ticketsRepository.findOneById(req.params.id)];
                     case 1:
@@ -334,20 +336,53 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
                         return [4 /*yield*/, entityManager.query("SELECT t.userId FROM ticket as t WHERE t.id = ?", [ticket.id])];
                     case 3:
                         response = _a.sent();
+                        console.log(JSON.stringify(response));
                         userId = response[0].userId;
-                        if (!(newState === 1)) return [3 /*break*/, 5];
+                        if (!(newState === 1)) return [3 /*break*/, 7];
                         return [4 /*yield*/, userRepository.findOneById(userId)];
                     case 4:
                         user = _a.sent();
                         qrLink = "http://localhost:3005/validare-bilet/".concat(ticket.secretCode);
                         userEmail = user.email;
-                        console.log("Send email with QR code: ".concat(qrLink, " to email: ").concat(userEmail));
-                        _a.label = 5;
-                    case 5: return [2 /*return*/, res.send(updatedTicket)];
+                        return [4 /*yield*/, (0, qrcode_1.generateQR)(qrLink)];
+                    case 5:
+                        qr = _a.sent();
+                        qr = qr.replace(/^data:image\/(png|jpg);base64,/, "");
+                        mail = {
+                            from: "EventsApp",
+                            to: userEmail,
+                            subject: "Event attendance pass",
+                            attachments: [
+                                {
+                                    filename: "Ticket.jpg",
+                                    content: qr,
+                                    encoding: "base64",
+                                },
+                            ],
+                            text: "Send email",
+                        };
+                        return [4 /*yield*/, mailsender_1.transporter.sendMail(mail, function (err, data) {
+                                if (err) {
+                                    res.send({
+                                        status: "fail",
+                                        error: err,
+                                    });
+                                }
+                                else {
+                                    res.json({
+                                        status: "success",
+                                    });
+                                }
+                            })];
                     case 6:
+                        _a.sent();
+                        _a.label = 7;
+                    case 7: return [2 /*return*/, res.send(updatedTicket)];
+                    case 8:
                         error_9 = _a.sent();
+                        console.log(error_9);
                         return [2 /*return*/, res.status(500).send(false)];
-                    case 7: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });

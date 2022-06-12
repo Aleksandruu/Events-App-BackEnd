@@ -6,6 +6,8 @@ import { Event } from "./entity/Event";
 import { Ticket } from "./entity/Ticket";
 import { v4 as uuidv4 } from "uuid";
 import cors = require("cors");
+import { transporter } from "./utils/mailsender";
+import { generateQR } from "./config/qrcode";
 
 // create typeorm connection
 const isAuthenticated = async (
@@ -218,15 +220,42 @@ createConnection().then((connection) => {
         `SELECT t.userId FROM ticket as t WHERE t.id = ?`,
         [ticket.id]
       );
+
       const userId = response[0].userId;
 
       if (newState === 1) {
         const user = await userRepository.findOneById(userId);
         const qrLink = `http://localhost:3005/validare-bilet/${ticket.secretCode}`;
         const userEmail = user.email;
-        console.log(
-          `Send email with QR code: ${qrLink} to email: ${userEmail}`
-        );
+
+        let qr = await generateQR(qrLink);
+        qr = qr.replace(/^data:image\/(png|jpg);base64,/, "");
+        let mail = {
+          from: "EventsApp",
+          to: userEmail,
+          subject: "Event attendance pass",
+          attachments: [
+            {
+              filename: "Ticket.jpg",
+              content: qr,
+              encoding: "base64",
+            },
+          ],
+          text: "Send email",
+        };
+
+        await transporter.sendMail(mail, (err, data) => {
+          if (err) {
+            res.send({
+              status: "fail",
+              error: err,
+            });
+          } else {
+            res.json({
+              status: "success",
+            });
+          }
+        });
       }
 
       return res.send(updatedTicket);
