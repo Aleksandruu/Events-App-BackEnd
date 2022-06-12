@@ -7,6 +7,10 @@ import { Ticket } from "./entity/Ticket";
 import { v4 as uuidv4 } from "uuid";
 import cors = require("cors");
 
+process.on("uncaughtException", (err) => {
+  console.log(err.message);
+});
+
 // create typeorm connection
 const isAuthenticated = async (
   email: string,
@@ -243,5 +247,5 @@ createConnection().then((connection) => {
     return res.send(results);
   });
 
-  app.listen(3000);
+  app.listen(3001);
 });

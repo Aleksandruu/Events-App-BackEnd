@@ -65,6 +65,9 @@ var Event_1 = require("./entity/Event");
 var Ticket_1 = require("./entity/Ticket");
 var uuid_1 = require("uuid");
 var cors = require("cors");
+process.on("uncaughtException", function (err) {
+    console.log(err.message);
+});
 // create typeorm connection
 var isAuthenticated = function (email, password, userRepository) { return __awaiter(void 0, void 0, void 0, function () {
     var user;
@@ -370,5 +373,5 @@ var isAuthenticated = function (email, password, userRepository) { return __awai
             });
         });
     });
-    app.listen(3000);
+    app.listen(3001);
 });
